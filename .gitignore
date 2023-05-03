@@ -1,6 +1,6 @@
 __pycache__/
 cache/
-experiments/
+experiments/*
 picard/
 SmBop/
 spider/

@@ -3,17 +3,18 @@ from dataclasses import dataclass, field
 from datasets.dataset_dict import DatasetDict
 from datasets.arrow_dataset import Dataset
 from transformers.training_args import TrainingArguments
-from seq2seq.utils.bridge_content_encoder import get_database_matches
+from model.utils.bridge_content_encoder import get_database_matches
 import re
 import random
-
+from typing import Optional
+from datasets.arrow_dataset import Dataset
+from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 @dataclass
 class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
-
     overwrite_cache: bool = field(
         default=False,
         metadata={"help": "Overwrite the cached training and evaluation sets"},
@@ -113,19 +114,20 @@ class DataTrainingArguments:
         metadata={"help": "Whether or not to randomize the order of tables."},
     )
     schema_serialization_with_db_id: bool = field(
-        default=True,
+        default=False,
         metadata={"help": "Whether or not to add the database id to the context. Needed for Picard."},
     )
     schema_serialization_with_db_content: bool = field(
-        default=True,
+        default=False,
         metadata={"help": "Whether or not to use the database content to resolve field matches."},
     )
     normalize_query: bool = field(default=True, metadata={"help": "Whether to normalize the SQL queries."})
-    target_with_db_id: bool = field(
-        default=True,
-        metadata={"help": "Whether or not to add the database id to the target. Needed for Picard."},
-    )
 
+    use_relational_algebra: bool = field(default=True, metadata={"help": "Whether to take targets in the form of a post-order RA tree."})
+    # target_with_db_id: bool = field(
+    #     default=False,
+    #     metadata={"help": "Whether or not to add the database id to the target. Needed for Picard."},
+    # )
     def __post_init__(self):
         if self.val_max_target_length is None:
             self.val_max_target_length = self.max_target_length
@@ -134,6 +136,7 @@ class DataTrainingArguments:
 @dataclass
 class DataArguments:
     dataset: str = field(
+        default='spider',
         metadata={"help": "The dataset to be used. Choose between ``spider``, ``cosql``, or ``cosql+spider``, or ``spider_realistic``, or ``spider_syn``, or ``spider_dk``."},
     )
     dataset_paths: Dict[str, str] = field(
@@ -238,7 +241,6 @@ def _prepare_train_split(
         load_from_cache_file=not data_training_args.overwrite_cache,
     )
     return TrainSplit(dataset=dataset, schemas=schemas)
-
 
 def _prepare_eval_split(
     dataset: Dataset,
@@ -416,3 +418,4 @@ def serialize_schema(
     else:
         serialized_schema = table_sep.join(tables)
     return serialized_schema
+

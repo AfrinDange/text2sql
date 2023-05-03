@@ -7,8 +7,8 @@ from datasets.metric import Metric
 from datasets.arrow_dataset import Dataset, concatenate_datasets
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 from transformers.training_args import TrainingArguments
-from args import ModelArguments
-from dataset import (
+from model.utils.args import ModelArguments
+from model.utils.dataset import (
     DataArguments,
     DataTrainingArguments,
     DatasetSplits,
@@ -16,11 +16,9 @@ from dataset import (
     _prepare_train_split,
     prepare_splits,
 )
-from spider import spider_add_serialized_schema, spider_pre_process_function
-from cosql import cosql_add_serialized_schema, cosql_pre_process_function
+from model.utils.spider import spider_add_serialized_schema, spider_pre_process_function
 
 logger = logging.getLogger(__name__)
-
 
 def _log_duplicate_count(dataset: Dataset, dataset_name: str, split: str) -> None:
     d = dataset.to_dict()
@@ -32,7 +30,6 @@ def _log_duplicate_count(dataset: Dataset, dataset_name: str, split: str) -> Non
         logger.warning(
             f"The split ``{split}`` of the dataset ``{dataset_name}`` contains {duplicate_count} duplicates out of {num_examples} examples"
         )
-
 
 def load_dataset(
     data_args: DataArguments,
